@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/statusTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Initializing..."
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/poseTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AR Pose: Not available"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/gpsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="GPS: Not available"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Control buttons arranged horizontally -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/clearButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clear"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/stopGpsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop GPS"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/restartGpsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Restart GPS"
+            android:layout_marginStart="4dp" />
+
+    </LinearLayout>
+
+    <!-- AR Camera View with Position Overlay -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Camera Preview using SurfaceView -->
+        <SurfaceView
+            android:id="@+id/surfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Position and Status Overlay -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:orientation="vertical"
+            android:background="#80000000"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/overlayStatusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="GPS Mode"
+                android:textColor="#00FF00"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/overlayPoseText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Position: X=0.00 Y=0.00 Z=0.00"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/overlayGpsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="GPS: Waiting..."
+                android:textColor="#FFFF00"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Trajectory Visualization -->
+    <com.example.arcoregps.TrajectoryView
+        android:id="@+id/trajectoryView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#000000" />
+
+    <!-- Save and Share Button -->
+    <Button
+        android:id="@+id/saveShareButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save &amp; Share Trajectory"
+        android:layout_margin="8dp"
+        android:backgroundTint="#4CAF50" />
+
+</LinearLayout>

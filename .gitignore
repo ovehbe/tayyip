@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Android build files
+live_vo/android_arcore_gps/build/
+live_vo/android_arcore_gps/app/build/
+live_vo/android_arcore_gps/.gradle/
+live_vo/android_arcore_gps/local.properties
+live_vo/android_arcore_gps/.idea/
+live_vo/android_arcore_gps/*.iml
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# CSV output files
+*.csv
+
+# Temporary files
+*.tmp
+*.temp
+
+# APK files (except release)
+*.apk
+!*-release*.apk
