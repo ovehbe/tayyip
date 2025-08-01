@@ -451,6 +451,119 @@ class BatchVisualOdometry:
         
         logger.info(f"Metadata saved to {output_path}")
 
+def load_camera_info(input_dir, args):
+    """Load camera parameters from camera_info.json if available"""
+    camera_info_path = os.path.join(input_dir, 'camera_info.json')
+    if os.path.exists(camera_info_path):
+        try:
+            with open(camera_info_path, 'r') as f:
+                camera_info = json.load(f)
+            logger.info(f"Loaded camera parameters from {camera_info_path}")
+            return (
+                camera_info.get('fx', args.fx),
+                camera_info.get('fy', args.fy),
+                camera_info.get('cx', args.cx),
+                camera_info.get('cy', args.cy)
+            )
+        except Exception as e:
+            logger.warning(f"Failed to load camera_info.json: {e}")
+    
+    return args.fx, args.fy, args.cx, args.cy
+
+def load_ground_truth(input_dir):
+    """Load ground truth trajectory if available"""
+    gt_path = os.path.join(input_dir, 'ground_truth.csv')
+    if os.path.exists(gt_path):
+        try:
+            df = pd.read_csv(gt_path)
+            logger.info(f"Loaded ground truth from {gt_path}")
+            
+            # Check if we have all required columns
+            required_cols = ['translation_x', 'translation_y']
+            if not all(col in df.columns for col in required_cols):
+                logger.warning(f"Ground truth missing required columns: {required_cols}")
+                return None
+            
+            # Add translation_z if missing (assume Z=0)
+            if 'translation_z' not in df.columns:
+                logger.info("Ground truth missing translation_z, assuming Z=0")
+                df['translation_z'] = 0.0
+            
+            return df[['translation_x', 'translation_y', 'translation_z']].values
+        except Exception as e:
+            logger.warning(f"Failed to load ground truth: {e}")
+    
+    return None
+
+def create_comparison_plot(gt_trajectory, vo_trajectory, output_path):
+    """Create comparison plot between ground truth and VO trajectory"""
+    try:
+        fig = plt.figure(figsize=(15, 10))
+        
+        # 3D plot
+        ax1 = fig.add_subplot(221, projection='3d')
+        ax1.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2], 
+                'g-', linewidth=2, label='Ground Truth', alpha=0.8)
+        ax1.plot(vo_trajectory[:, 0], vo_trajectory[:, 1], vo_trajectory[:, 2], 
+                'r--', linewidth=2, label='Visual Odometry', alpha=0.8)
+        ax1.set_xlabel('X (m)')
+        ax1.set_ylabel('Y (m)')
+        ax1.set_zlabel('Z (m)')
+        ax1.set_title('3D Trajectory Comparison')
+        ax1.legend()
+        
+        # XY plot
+        ax2 = fig.add_subplot(222)
+        ax2.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], 'g-', linewidth=2, label='Ground Truth')
+        ax2.plot(vo_trajectory[:, 0], vo_trajectory[:, 1], 'r--', linewidth=2, label='Visual Odometry')
+        ax2.set_xlabel('X (m)')
+        ax2.set_ylabel('Y (m)')
+        ax2.set_title('Top View (X-Y)')
+        ax2.legend()
+        ax2.grid(True)
+        ax2.axis('equal')
+        
+        # Error plots
+        min_len = min(len(gt_trajectory), len(vo_trajectory))
+        gt_short = gt_trajectory[:min_len]
+        vo_short = vo_trajectory[:min_len]
+        
+        errors = np.linalg.norm(gt_short - vo_short, axis=1)
+        
+        ax3 = fig.add_subplot(223)
+        ax3.plot(range(min_len), errors, 'b-', linewidth=1)
+        ax3.set_xlabel('Frame')
+        ax3.set_ylabel('Position Error (m)')
+        ax3.set_title('Position Error Over Time')
+        ax3.grid(True)
+        
+        # Error statistics
+        ax4 = fig.add_subplot(224)
+        ax4.hist(errors, bins=30, alpha=0.7, color='blue', edgecolor='black')
+        ax4.set_xlabel('Position Error (m)')
+        ax4.set_ylabel('Frequency')
+        ax4.set_title('Error Distribution')
+        ax4.grid(True)
+        
+        # Add statistics text
+        mean_error = np.mean(errors)
+        std_error = np.std(errors)
+        max_error = np.max(errors)
+        
+        stats_text = f'Mean Error: {mean_error:.3f}m\nStd Error: {std_error:.3f}m\nMax Error: {max_error:.3f}m'
+        ax4.text(0.02, 0.98, stats_text, transform=ax4.transAxes, 
+                verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        logger.info(f"Comparison plot saved to: {output_path}")
+        logger.info(f"Trajectory comparison stats: Mean error: {mean_error:.3f}m, Max error: {max_error:.3f}m")
+        
+    except Exception as e:
+        logger.error(f"Failed to create comparison plot: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description='Batch Visual Odometry Processor')
     parser.add_argument('--input_dir', required=True, help='Directory containing input images')
@@ -461,12 +574,42 @@ def main():
     parser.add_argument('--fy', type=float, default=800, help='Camera focal length Y')
     parser.add_argument('--cx', type=float, default=320, help='Camera principal point X')
     parser.add_argument('--cy', type=float, default=240, help='Camera principal point Y')
+    parser.add_argument('--comparison_only', action='store_true', help='Only generate comparison plot (skip VO processing)')
     
     args = parser.parse_args()
     
     # Create output directory
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Load camera parameters (from file or command line)
+    fx, fy, cx, cy = load_camera_info(args.input_dir, args)
+    logger.info(f"Using camera parameters: fx={fx}, fy={fy}, cx={cx}, cy={cy}")
+    
+    # Load ground truth if available
+    ground_truth = load_ground_truth(args.input_dir)
+    
+    # Check if we're only generating comparison plot
+    if args.comparison_only:
+        if ground_truth is None:
+            logger.error("Cannot create comparison plot: no ground truth found")
+            return
+        
+        vo_csv_path = output_dir / 'trajectory.csv'
+        if not vo_csv_path.exists():
+            logger.error(f"Cannot create comparison plot: no VO trajectory found at {vo_csv_path}")
+            return
+        
+        try:
+            vo_df = pd.read_csv(vo_csv_path)
+            vo_trajectory = vo_df[['x', 'y', 'z']].values
+            comparison_path = output_dir / 'comparison_plot.png'
+            create_comparison_plot(ground_truth, vo_trajectory, str(comparison_path))
+            logger.info("Comparison plot generation complete!")
+            return
+        except Exception as e:
+            logger.error(f"Failed to load VO trajectory: {e}")
+            return
     
     # Get image paths
     image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff']
@@ -490,7 +633,7 @@ def main():
     )
     
     # Set camera parameters
-    vo.set_camera_matrix(args.fx, args.fy, args.cx, args.cy)
+    vo.set_camera_matrix(fx, fy, cx, cy)
     
     # Process images
     if not vo.process_image_sequence(image_paths):
@@ -505,6 +648,15 @@ def main():
     vo.export_to_csv(str(csv_path))
     vo.create_3d_plot(str(plot_path))
     vo.save_metadata(str(metadata_path))
+    
+    # Generate comparison plot if ground truth is available
+    if ground_truth is not None:
+        try:
+            vo_trajectory = np.array(vo.trajectory)
+            comparison_path = output_dir / 'comparison_plot.png'
+            create_comparison_plot(ground_truth, vo_trajectory, str(comparison_path))
+        except Exception as e:
+            logger.error(f"Failed to create comparison plot: {e}")
     
     logger.info("Batch processing complete!")
     logger.info(f"Results saved to: {output_dir}")

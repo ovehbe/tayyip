@@ -1,0 +1,13 @@
+{
+  "fx": 1413.3,
+  "fy": 1418.8,
+  "cx": 950.0639,
+  "cy": 543.3796,
+  "k1": -0.0091,
+  "k2": 0.0666,
+  "p1": 0.0,
+  "p2": 0.0,
+  "image_width": 1920,
+  "image_height": 1080,
+  "notes": "From MATLAB Camera Calibration - Mean reprojection error: 0.6450"
+}
