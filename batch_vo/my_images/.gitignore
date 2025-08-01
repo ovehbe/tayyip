@@ -1,0 +1,19 @@
+# Ignore all image files to prevent uploading large datasets
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.tif
+*.JPG
+*.JPEG
+*.PNG
+*.BMP
+*.TIFF
+*.TIF
+
+# Keep camera info and ground truth
+!camera_info.json
+!ground_truth.csv
+!*.txt
+!*.md

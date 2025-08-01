@@ -1,0 +1,42 @@
+{
+  "total_frames": 1367,
+  "total_distance": 123.91220425805034,
+  "feature_detector": "SIFT",
+  "max_features": 1000,
+  "match_ratio": 0.75,
+  "ransac_threshold": 1.0,
+  "scale_factor": 0.1,
+  "smoothing_window": 5,
+  "camera_matrix": [
+    [
+      1413.300048828125,
+      0.0,
+      950.0639038085938
+    ],
+    [
+      0.0,
+      1418.800048828125,
+      543.3795776367188
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "trajectory_bounds": {
+    "x_min": -0.44527610508199306,
+    "x_max": 14.5450901113164,
+    "y_min": -1.9500292882044614,
+    "y_max": 8.630907265349107,
+    "z_min": -8.319074994750006,
+    "z_max": 0.24716922750043427
+  },
+  "statistics": {
+    "avg_matches": 252.47937368262572,
+    "avg_inlier_ratio": 0.9747507272413499,
+    "avg_translation": 0.09999999999999999,
+    "max_translation": 0.10000000000000003,
+    "total_keyframes": 137
+  }
+}
