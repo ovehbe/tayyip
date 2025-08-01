@@ -41,6 +41,7 @@ Thumbs.db
 *.tmp
 *.temp
 
-# APK files (except release)
+# APK files (except release versions)
 *.apk
 !*-release*.apk
+!ARCore-GPS-Demo-*.apk
